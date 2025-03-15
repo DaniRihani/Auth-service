@@ -45,5 +45,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            your-docker-username/auth-service:latest
-            your-docker-username/auth-service:${{ github.sha }}
+            danirihani1/auth-service:latest
+            danirihani1/auth-service:${{ github.sha }}
