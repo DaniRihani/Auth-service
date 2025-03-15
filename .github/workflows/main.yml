@@ -1,4 +1,4 @@
-name: Build and Deploy Auth-service
+name: Build and Deploy
 
 on:
   push:
@@ -7,38 +7,47 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: windows-latest
+    runs-on: windows-latest  # For Windows containers. Switch to `ubuntu-latest` for Linux.
 
     steps:
-      # Checkout code
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17.0.12'
           distribution: 'temurin'
 
-      # Build JAR
       - name: Build JAR with Maven
         run: mvn clean install -B
 
-      # Login to Docker Hub
+      # Initialize Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: "docker-container"  # Required for multi-platform builds
+          install: true              # Ensures Buildx is installed
+
+      # Verify Docker environment
+      - name: Show Docker Info
+        run: |
+          docker version
+          docker buildx version
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build and Push Docker Image
+      # Build and push Docker image
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
+          platforms: windows/amd64  # Use `linux/amd64` if targeting Linux
           push: true
           tags: |
-            your-docker-username/auth-service:latest
-            your-docker-username/auth-service:${{ github.sha }}
+            your-docker-username/app:latest
